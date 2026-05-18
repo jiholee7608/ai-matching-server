@@ -1,6 +1,6 @@
 export async function analyzeEmotion(text) {
   const cleanText = text.replace(/\s/g, "").toLowerCase();
-
+//임시로 만듦 나중에 바꿀 것
   const emotionKeywords = {
     anxious: ["불안", "걱정", "초조", "두려", "무섭", "압박", "긴장", "떨려"],
     sad: ["슬퍼", "우울", "힘들", "눈물", "속상", "허무", "지쳤", "괴로"],
