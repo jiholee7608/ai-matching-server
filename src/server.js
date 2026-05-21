@@ -17,8 +17,7 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 // 기본 미들웨어 설정
 // -----------------------------
 app.use(cors({
-  origin: CLIENT_URL,
-  credentials: true,
+  origin: "*", // ★ 모든 주소 무조건 허용
 }));
 
 app.use(express.json());
@@ -28,9 +27,8 @@ app.use(express.json());
 // -----------------------------
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: "*", // ★ 소켓 통신도 무조건 허용
+    methods: ["GET", "POST"]
   },
 });
 
