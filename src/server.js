@@ -1,5 +1,4 @@
 // src/server.js
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 require("dotenv").config();
 
 const express = require("express");
@@ -11,8 +10,8 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 4000;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 // -----------------------------
 // 기본 미들웨어 설정
 // -----------------------------
