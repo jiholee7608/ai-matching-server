@@ -5,6 +5,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const server = http.createServer(app);
@@ -12,6 +13,19 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+const REPORT_EMAIL_TO = process.env.REPORT_EMAIL_TO;
+
+const mailTransporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // -----------------------------
 // 기본 미들웨어 설정
 // -----------------------------
@@ -76,6 +90,83 @@ app.get("/health", (req, res) => {
     waitingUserCount: waitingUsers.length,
     roomCount: rooms.size,
   });
+});
+
+// -----------------------------
+// 신고 이메일 전송 API
+// -----------------------------
+app.post("/api/report", async (req, res) => {
+  try {
+    const {
+      roomId,
+      reporterNickname,
+      reportedNickname,
+      reason,
+      recentMessages,
+    } = req.body;
+
+    if (!reason || reason.trim() === "") {
+      return res.status(400).json({
+        ok: false,
+        message: "신고 사유를 입력해주세요.",
+      });
+    }
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !REPORT_EMAIL_TO) {
+      return res.status(500).json({
+        ok: false,
+        message: "이메일 발송 설정이 되어 있지 않습니다.",
+      });
+    }
+
+    const messageLog = Array.isArray(recentMessages)
+      ? recentMessages
+          .slice(-10)
+          .map((msg, index) => {
+            return `${index + 1}. [${msg.nickname || "익명"}] ${msg.message || ""}`;
+          })
+          .join("\n")
+      : "최근 메시지 없음";
+
+    await mailTransporter.sendMail({
+      from: `"Mind Bridge 신고 알림" <${process.env.EMAIL_USER}>`,
+      to: REPORT_EMAIL_TO,
+      subject: "[Mind Bridge] 사용자 신고가 접수되었습니다",
+      text: `
+[사용자 신고 접수]
+
+방 ID:
+${roomId || "없음"}
+
+신고자:
+${reporterNickname || "익명"}
+
+신고 대상:
+${reportedNickname || "상대방"}
+
+신고 사유:
+${reason}
+
+최근 채팅 내용:
+${messageLog}
+
+접수 시간:
+${new Date().toLocaleString("ko-KR")}
+      `,
+    });
+
+    res.json({
+      ok: true,
+      message: "신고가 접수되었습니다.",
+    });
+  } catch (error) {
+    console.error("신고 이메일 전송 오류:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "신고 이메일 전송 중 오류가 발생했습니다.",
+    });
+  }
 });
 
 // -----------------------------
