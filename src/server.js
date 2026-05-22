@@ -332,7 +332,13 @@ console.log("매칭 대기 요청:", currentUser);
       });
       return;
     }
-
+// 채팅 메시지 전송 로직 아래에 새로 추가!
+  socket.on("join_room", (payload) => {
+    if (payload && payload.roomId) {
+      socket.join(payload.roomId);
+      console.log(`사용자 방 재입장 완료: ${payload.roomId} (소켓: ${socket.id})`);
+    }
+  });
     const chatMessage = {
       roomId,
       nickname: nickname || "익명",
